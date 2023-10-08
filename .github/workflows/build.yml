@@ -81,11 +81,27 @@ jobs:
           path: ./images/ubuntu-22.04.3-preinstalled-desktop-arm64-${{ matrix.platform }}.*
           if-no-files-found: error
 
-      - name: Create release
-        uses: softprops/action-gh-release@v0.1.15
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          body: TODO New Release.
+          draft: false
+          prerelease: true
 
-      - name: Prerelease Action
-        uses: JonDotsoy/feature-branching@v1
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./images/ubuntu-22.04.3-preinstalled-desktop-arm64-${{ matrix.platform }}.*
+          asset_name: ubuntu-22.04.3-preinstalled-desktop-arm64-${{ matrix.platform }}
+          asset_content_type: application/octet-stream
 
       - name: Clean cache
         shell: bash
