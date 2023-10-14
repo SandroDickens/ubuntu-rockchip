@@ -16,9 +16,10 @@ if [[ "${MAINLINE}" != "Y" ]]; then
     cd linux-rockchip
 
     # Compile kernel into a deb package
-    dpkg-buildpackage -a "$(cat debian/arch)" -d -b -nc -uc
+    make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- rockchip_linux_defconfig
+    make KERNELRELEASE="$(make kernelversion)" KBUILD_IMAGE="arch/arm64/boot/Image" CROSS_COMPILE=aarch64-linux-gnu- ARCH=arm64 -j "$(nproc)" bindeb-pkg
 
-    rm -f ../*.buildinfo ../*.changes
+    rm -f ../linux-image-*dbg*.deb ../linux-libc-dev_*.deb ../*.buildinfo ../*.changes ../*.dsc ../*.tar.gz
 else
     test -d linux ||  git clone --single-branch --progress -b v6.5-rk3588 https://github.com/SandroDickens/linux-rockchip-v6.git --depth=1 linux
     cd linux
