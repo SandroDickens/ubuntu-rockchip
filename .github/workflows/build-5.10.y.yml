@@ -1,4 +1,4 @@
-name: Build
+name: Build Linux 5.10.y
 run-name: Build with Rockchip Linux 5.10
 
 on:
