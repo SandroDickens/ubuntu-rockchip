@@ -110,7 +110,7 @@ fi
 
 KVER=""
 if [[ "${MAINLINE}" == "Y" ]]; then
-    KVER="-mainline-6.5.6"
+    KVER="-mainline-6.5"
 fi
 
 # Create an empty disk image

@@ -1,5 +1,5 @@
 name: Build Mainline
-run-name: Build with mainline Linux 6.5.6
+run-name: Build with mainline Linux 6.5
 
 on:
   workflow_dispatch:
@@ -57,8 +57,8 @@ jobs:
       - name: Upload server image
         uses: actions/upload-artifact@v3
         with:
-          name: ubuntu-22.04.3-preinstalled-server-arm64-${{ matrix.platform }}-mainline-6.5.6
-          path: ./images/ubuntu-22.04.3-preinstalled-server-arm64-${{ matrix.platform }}-mainline-6.5.6.*
+          name: ubuntu-22.04.3-preinstalled-server-arm64-${{ matrix.platform }}-mainline-6.5
+          path: ./images/ubuntu-22.04.3-preinstalled-server-arm64-${{ matrix.platform }}-mainline-6.5.*
           if-no-files-found: error
 
       # - name: Create release
