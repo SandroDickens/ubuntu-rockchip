@@ -1,4 +1,4 @@
-name: Build Mainline
+name: Build Linux 6.5.y
 run-name: Build with mainline Linux 6.5
 
 on:
