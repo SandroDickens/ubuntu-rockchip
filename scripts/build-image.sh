@@ -102,7 +102,7 @@ elif [[ "${BOARD}" == indiedroid-nova ]]; then
     OVERLAY_PREFIX=
     if [[ "${MAINLINE}" == "Y" ]]; then
         DEVICE_TREE=rk3588s-indiedroid-nova.dtb
-    fi
+    fi 
 elif [[ "${BOARD}" == lubancat-4 ]]; then
     DEVICE_TREE=rk3588s-lubancat-4.dtb
     OVERLAY_PREFIX=lubancat-4
@@ -258,12 +258,23 @@ overlay_prefix=${OVERLAY_PREFIX}
 overlays=
 EOF
 
+# Turing RK1 uses UART9 by default
+if [[ "${MAINLINE}" == "Y" ]]; then
+    [ "${BOARD}" == turing-rk1 ] && sed -i 's/console=ttyS2,1500000/console=ttyS0,115200 console=ttyS2,1500000/g' ${mount_point}/system-boot/ubuntuEnv.txt
+else
+    [ "${BOARD}" == turing-rk1 ] && sed -i 's/console=ttyS2,1500000/console=ttyS9,115200 console=ttyS2,1500000/g' ${mount_point}/system-boot/ubuntuEnv.txt
+fi
+
 # Copy the device trees, kernel, and initrd to the boot partition
 mv ${mount_point}/writable/boot/firmware/* ${mount_point}/system-boot/
 
 # Write bootloader to disk image
-dd if=${mount_point}/writable/usr/lib/u-boot-"${VENDOR}"-rk3588/idbloader.img of="${loop}" seek=64 conv=notrunc
-dd if=${mount_point}/writable/usr/lib/u-boot-"${VENDOR}"-rk3588/u-boot.itb of="${loop}" seek=16384 conv=notrunc
+if [ -f "${mount_point}/writable/usr/lib/u-boot-${VENDOR}-rk3588/u-boot-rockchip.bin" ]; then
+    dd if=${mount_point}/writable/usr/lib/u-boot-"${VENDOR}"-rk3588/u-boot-rockchip.bin of="${loop}" seek=1 bs=32k conv=fsync
+else
+    dd if=${mount_point}/writable/usr/lib/u-boot-"${VENDOR}"-rk3588/idbloader.img of="${loop}" seek=64 conv=notrunc
+    dd if=${mount_point}/writable/usr/lib/u-boot-"${VENDOR}"-rk3588/u-boot.itb of="${loop}" seek=16384 conv=notrunc
+fi
 
 # Cloud init config for server image
 if [ -z "${img##*server*}" ]; then
@@ -271,17 +282,17 @@ if [ -z "${img##*server*}" ]; then
     if [ "${BOARD}" == rock-5b ] || [ "${BOARD}" == indiedroid-nova ]; then
         sed -i 's/eth0:/enP4p65s0:/g' ${mount_point}/system-boot/network-config
     elif [ "${BOARD}" == orangepi-5-plus ]; then
-        sed -i 's/eth0:/enP4p65s0:\n    dhcp4: true\n    optional: true\n  enP3p49s0:/g' ${mount_point}/system-boot/network-config
+        sed -i 's/eth0:/enP4p65s0:\n      dhcp4: true\n      optional: true\n    enP3p49s0:/g' ${mount_point}/system-boot/network-config
     elif [ "${BOARD}" == nanopi-r6c ]; then
-        sed -i 's/eth0:/eth0:\n    dhcp4: true\n    optional: true\n  enP3p49s0:/g' ${mount_point}/system-boot/network-config
+        sed -i 's/eth0:/eth0:\n      dhcp4: true\n      optional: true\n    enP3p49s0:/g' ${mount_point}/system-boot/network-config
     elif [ "${BOARD}" == nanopi-r6s ]; then
-        sed -i 's/eth0:/eth0:\n    dhcp4: true\n    optional: true\n  enP3p49s0:\n    dhcp4: true\n    optional: true\n  enP4p65s0:/g' ${mount_point}/system-boot/network-config
+        sed -i 's/eth0:/eth0:\n      dhcp4: true\n      optional: true\n    enP3p49s0:\n      dhcp4: true\n      optional: true\n    enP4p65s0:/g' ${mount_point}/system-boot/network-config
     elif [ "${BOARD}" == nanopc-t6 ]; then
-        sed -i 's/eth0:/enP2p33s0:\n    dhcp4: true\n    optional: true\n  enP4p65s0:/g' ${mount_point}/system-boot/network-config
+        sed -i 's/eth0:/enP2p33s0:\n      dhcp4: true\n      optional: true\n    enP4p65s0:/g' ${mount_point}/system-boot/network-config
     elif [ "${BOARD}" == mixtile-blade3 ]; then
-        sed -i 's/eth0:/enP2p35s0:\n    dhcp4: true\n    optional: true\n  enP2p36s0:/g' ${mount_point}/system-boot/network-config
+        sed -i 's/eth0:/enP2p35s0:\n      dhcp4: true\n      optional: true\n    enP2p36s0:/g' ${mount_point}/system-boot/network-config
     elif [ "${BOARD}" == lubancat-4 ]; then
-        sed -i 's/eth0:/enP4p65s0:\n    dhcp4: true\n    optional: true\n  enP3p49s0:/g' ${mount_point}/system-boot/network-config
+        sed -i 's/eth0:/enP4p65s0:\n      dhcp4: true\n      optional: true\n    enP3p49s0:/g' ${mount_point}/system-boot/network-config
     fi
 fi
 

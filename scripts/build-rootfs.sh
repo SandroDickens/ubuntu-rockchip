@@ -136,7 +136,8 @@ ubuntu-drivers-common ubuntu-server dosfstools mtools parted ntfs-3g zip atop \
 p7zip-full htop iotop pciutils lshw lsof landscape-common exfat-fuse hwinfo \
 net-tools wireless-tools openssh-client openssh-server wpasupplicant ifupdown \
 pigz wget curl lm-sensors bluez gdisk usb-modeswitch usb-modeswitch-data make \
-gcc libc6-dev bison libssl-dev flex flash-kernel fake-hwclock wireless-regdb
+gcc libc6-dev bison libssl-dev flex flash-kernel fake-hwclock wireless-regdb \
+uuid-runtime
 
 # Remove cryptsetup and needrestart
 apt-get -y remove cryptsetup needrestart
@@ -196,14 +197,6 @@ cp ${overlay_dir}/usr/lib/scripts/resize-filesystem.sh ${chroot_dir}/usr/lib/scr
 cp ${overlay_dir}/usr/lib/systemd/system/resize-filesystem.service ${chroot_dir}/usr/lib/systemd/system/resize-filesystem.service
 chroot ${chroot_dir} /bin/bash -c "systemctl enable resize-filesystem"
 
-# Set cpu governor to performance
-cp ${overlay_dir}/usr/lib/systemd/system/cpu-governor-performance.service ${chroot_dir}/usr/lib/systemd/system/cpu-governor-performance.service
-chroot ${chroot_dir} /bin/bash -c "systemctl enable cpu-governor-performance"
-
-# Set gpu governor to performance
-cp ${overlay_dir}/usr/lib/systemd/system/gpu-governor-performance.service ${chroot_dir}/usr/lib/systemd/system/gpu-governor-performance.service
-chroot ${chroot_dir} /bin/bash -c "systemctl enable gpu-governor-performance"
-
 # Add realtek bluetooth firmware to initrd 
 cp ${overlay_dir}/usr/share/initramfs-tools/hooks/rtl-bt ${chroot_dir}/usr/share/initramfs-tools/hooks/rtl-bt
 
@@ -228,6 +221,9 @@ chroot ${chroot_dir} /bin/bash -c "pro config set apt_news=false"
 # Remove release upgrade motd
 rm -f ${chroot_dir}/var/lib/ubuntu-release-upgrader/release-upgrade-available
 cp ${overlay_dir}/etc/update-manager/release-upgrades ${chroot_dir}/etc/update-manager/release-upgrades
+
+# Copy over the ubuntu rockchip install util
+cp ${overlay_dir}/usr/bin/ubuntu-rockchip-install ${chroot_dir}/usr/bin/ubuntu-rockchip-install
 
 # Let systemd create machine id on first boot
 rm -f ${chroot_dir}/var/lib/dbus/machine-id
@@ -361,6 +357,12 @@ chroot ${chroot_dir} /bin/bash -c "dconf update"
 # Have plymouth use the framebuffer
 mkdir -p ${chroot_dir}/etc/initramfs-tools/conf-hooks.d
 cp ${overlay_dir}/etc/initramfs-tools/conf-hooks.d/plymouth ${chroot_dir}/etc/initramfs-tools/conf-hooks.d/plymouth
+
+# Mouse lag/stutter (missed frames) in Wayland sessions
+# https://bugs.launchpad.net/ubuntu/+source/mutter/+bug/1982560
+echo "MUTTER_DEBUG_ENABLE_ATOMIC_KMS=0" >> ${chroot_dir}/etc/environment
+echo "MUTTER_DEBUG_FORCE_KMS_MODE=simple" >> ${chroot_dir}/etc/environment
+echo "CLUTTER_PAINT=disable-dynamic-max-render-time" >> ${chroot_dir}/etc/environment
 
 # Update initramfs
 chroot ${chroot_dir} /bin/bash -c "update-initramfs -u"
