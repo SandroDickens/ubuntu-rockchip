@@ -137,7 +137,7 @@ p7zip-full htop iotop pciutils lshw lsof landscape-common exfat-fuse hwinfo \
 net-tools wireless-tools openssh-client openssh-server wpasupplicant ifupdown \
 pigz wget curl lm-sensors bluez gdisk usb-modeswitch usb-modeswitch-data make \
 gcc libc6-dev bison libssl-dev flex flash-kernel fake-hwclock wireless-regdb \
-uuid-runtime
+uuid-runtime rsync linux-firmware rockchip-firmware
 
 # Remove cryptsetup and needrestart
 apt-get -y remove cryptsetup needrestart
@@ -196,6 +196,14 @@ mkdir -p ${chroot_dir}/usr/lib/scripts
 cp ${overlay_dir}/usr/lib/scripts/resize-filesystem.sh ${chroot_dir}/usr/lib/scripts/resize-filesystem.sh
 cp ${overlay_dir}/usr/lib/systemd/system/resize-filesystem.service ${chroot_dir}/usr/lib/systemd/system/resize-filesystem.service
 chroot ${chroot_dir} /bin/bash -c "systemctl enable resize-filesystem"
+
+# Set cpu governor to performance
+cp ${overlay_dir}/usr/lib/systemd/system/cpu-governor-performance.service ${chroot_dir}/usr/lib/systemd/system/cpu-governor-performance.service
+chroot ${chroot_dir} /bin/bash -c "systemctl enable cpu-governor-performance"
+
+# Set gpu governor to performance
+cp ${overlay_dir}/usr/lib/systemd/system/gpu-governor-performance.service ${chroot_dir}/usr/lib/systemd/system/gpu-governor-performance.service
+chroot ${chroot_dir} /bin/bash -c "systemctl enable gpu-governor-performance"
 
 # Add realtek bluetooth firmware to initrd 
 cp ${overlay_dir}/usr/share/initramfs-tools/hooks/rtl-bt ${chroot_dir}/usr/share/initramfs-tools/hooks/rtl-bt
