@@ -139,20 +139,16 @@ mklabel gpt \
 mkpart primary fat16 16MiB 528MiB \
 mkpart primary ext4 528MiB 100%
 
-set +e
-
 # Create partitions
-fdisk "${disk}" << EOF
-t
-1
-BC13C2FF-59E6-4262-A352-B275FD6F7172
-t
-2
-0FC63DAF-8483-4772-8E79-3D69D8477DE4
-w
-EOF
-
-set -eE
+{
+    echo "t"
+    echo "1"
+    echo "BC13C2FF-59E6-4262-A352-B275FD6F7172"
+    echo "t"
+    echo "2"
+    echo "0FC63DAF-8483-4772-8E79-3D69D8477DE4"
+    echo "w"
+} | fdisk "${disk}" &> /dev/null || true
 
 partprobe "${disk}"
 
@@ -260,7 +256,8 @@ EOF
 
 # Turing RK1 uses UART9 by default
 if [[ "${MAINLINE}" == "Y" ]]; then
-    [ "${BOARD}" == turing-rk1 ] && sed -i 's/console=ttyS2,1500000/console=ttyS0,115200 console=ttyS2,1500000/g' ${mount_point}/system-boot/ubuntuEnv.txt
+    sed -i 's/swapaccount=1/irqchip.gicv3_pseudo_nmi=0/g' ${mount_point}/system-boot/ubuntuEnv.txt
+    [ "${BOARD}" == turing-rk1 ] && sed -i 's/console=ttyS2,1500000/console=ttyS0,115200/g' ${mount_point}/system-boot/ubuntuEnv.txt
 else
     [ "${BOARD}" == turing-rk1 ] && sed -i 's/console=ttyS2,1500000/console=ttyS9,115200 console=ttyS2,1500000/g' ${mount_point}/system-boot/ubuntuEnv.txt
 fi
@@ -269,11 +266,11 @@ fi
 mv ${mount_point}/writable/boot/firmware/* ${mount_point}/system-boot/
 
 # Write bootloader to disk image
-if [ -f "${mount_point}/writable/usr/lib/u-boot-${VENDOR}-rk3588/u-boot-rockchip.bin" ]; then
-    dd if=${mount_point}/writable/usr/lib/u-boot-"${VENDOR}"-rk3588/u-boot-rockchip.bin of="${loop}" seek=1 bs=32k conv=fsync
+if [ -f "${mount_point}/writable/usr/lib/u-boot/u-boot-rockchip.bin" ]; then
+    dd if="${mount_point}/writable/usr/lib/u-boot/u-boot-rockchip.bin" of="${loop}" seek=1 bs=32k conv=fsync
 else
-    dd if=${mount_point}/writable/usr/lib/u-boot-"${VENDOR}"-rk3588/idbloader.img of="${loop}" seek=64 conv=notrunc
-    dd if=${mount_point}/writable/usr/lib/u-boot-"${VENDOR}"-rk3588/u-boot.itb of="${loop}" seek=16384 conv=notrunc
+    dd if="${mount_point}/writable/usr/lib/u-boot/idbloader.img" of="${loop}" seek=64 conv=notrunc
+    dd if="${mount_point}/writable/usr/lib/u-boot/u-boot.itb" of="${loop}" seek=16384 conv=notrunc
 fi
 
 # Cloud init config for server image
