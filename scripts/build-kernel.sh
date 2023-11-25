@@ -21,7 +21,7 @@ if [[ "${MAINLINE}" != "Y" ]]; then
 
     rm -f ../linux-image-*dbg*.deb ../linux-libc-dev_*.deb ../*.buildinfo ../*.changes ../*.dsc ../*.tar.gz
 else
-    test -d linux ||  git clone --single-branch --progress -b v6.5-rk3588 https://github.com/SandroDickens/linux-rockchip-v6.git --depth=1 linux
+    test -d linux ||  git clone --single-branch --progress -b linux-6.6.y https://github.com/SandroDickens/linux-rockchip-v6.git --depth=1 linux
     cd linux
 
     make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- rockchip_linux_defconfig
