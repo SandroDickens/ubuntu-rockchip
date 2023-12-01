@@ -113,6 +113,14 @@ fi
 # Read partition table again
 blockdev --rereadpt "${disk}"
 
+# Ensure boot partition is mounted
+root_partition_char=$(lsblk -no pkname "$(findmnt -n -o SOURCE /)")
+if [[ $(findmnt -M /boot/firmware/ -n -o SOURCE) != "/dev/$(lsblk -no pkname "$(findmnt -n -o SOURCE /)")$(if [[ ${root_partition_char: -1} == [0-9] ]]; then echo p; fi)1" ]]; then
+    mkdir -p /boot/firmware/
+    umount -lf /boot/firmware/ 2> /dev/null || true
+    mount "/dev/$(lsblk -no pkname "$(findmnt -n -o SOURCE /)")$(if [[ ${root_partition_char: -1} == [0-9] ]]; then echo p; fi)1" /boot/firmware/
+fi
+
 # Mount partitions
 mkdir -p ${mount_point}/{system-boot,writable}
 mount "${disk}${partition_char}1" ${mount_point}/system-boot/
@@ -170,6 +178,10 @@ UUID=${boot_uuid^^} /boot/firmware vfat    defaults    0       2
 UUID=${root_uuid,,} /              ext4    defaults    0       1
 /swapfile           none           swap    sw          0       0
 EOF
+
+# Let systemd create machine id on first boot
+rm -f ${mount_point}/writable/var/lib/dbus/machine-id
+true > ${mount_point}/writable/etc/machine-id
 
 sync --file-system
 sync
