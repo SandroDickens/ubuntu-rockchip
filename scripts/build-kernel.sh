@@ -24,7 +24,7 @@ else
     test -d linux ||  git clone --single-branch --progress -b linux-6.6.y https://github.com/SandroDickens/linux-rockchip-v6.git --depth=1 linux
     cd linux
 
-    make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- rockchip_defconfig
+    make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- rockchip_linux_defconfig
     make KERNELRELEASE="$(make kernelversion)-rockchip" KBUILD_IMAGE="arch/arm64/boot/Image" CROSS_COMPILE=aarch64-linux-gnu- ARCH=arm64 -j "$(nproc)" bindeb-pkg
 
     rm -f ../linux-image-*dbg*.deb ../linux-libc-dev_*.deb ../*.buildinfo ../*.changes ../*.dsc ../*.tar.gz
