@@ -106,6 +106,9 @@ elif [[ "${BOARD}" == indiedroid-nova ]]; then
 elif [[ "${BOARD}" == lubancat-4 ]]; then
     DEVICE_TREE=rk3588s-lubancat-4.dtb
     OVERLAY_PREFIX=rk3588
+elif [[ "${BOARD}" == roc-rk3588s-pc ]]; then
+    DEVICE_TREE=rk3588s-roc-rk3588s-pc-v12.dtb
+    OVERLAY_PREFIX=
 fi
 
 KVER=""
@@ -209,7 +212,7 @@ cat > ${mount_point}/system-boot/boot.cmd << 'EOF'
 # Recompile with:
 # mkimage -A arm64 -O linux -T script -C none -n "Boot Script" -d boot.cmd boot.scr
 
-setenv load_addr "0x9000000"
+setenv load_addr "0x7000000"
 setenv overlay_error "false"
 
 echo "Boot script loaded from ${devtype} ${devnum}"
