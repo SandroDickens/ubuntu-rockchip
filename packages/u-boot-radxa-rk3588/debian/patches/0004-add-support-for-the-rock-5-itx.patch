@@ -1,78 +1,117 @@
-From 9af8f6f23842adfac0f1eb8a77c70c3770d2369e Mon Sep 17 00:00:00 2001
-From: Martin Liu <martin@focalcrest.com>
-Date: Wed, 15 Jun 2022 15:37:09 +0800
-Subject: [PATCH 1/9] Add Blade 3 defines
+From c10423194a6275c5587f170a7621145f9fa41483 Mon Sep 17 00:00:00 2001
+From: Joshua Riek <jjriek@verizon.net>
+Date: Thu, 14 Dec 2023 19:49:01 -0500
+Subject: [PATCH] board: rockchip: Add ROCK 5 ITX support
 
+Signed-off-by: Joshua Riek <jjriek@verizon.net>
 ---
- arch/arm/dts/rk3588-blade3.dts |  50 ++++++++
- configs/blade3_defconfig       | 225 +++++++++++++++++++++++++++++++++
- 2 files changed, 275 insertions(+)
- create mode 100644 arch/arm/dts/rk3588-blade3.dts
- create mode 100644 configs/blade3_defconfig
+ arch/arm/dts/rk3588-rock-5-itx.dts  |  87 +++++++++++
+ configs/rock-5-itx-rk3588_defconfig | 223 ++++++++++++++++++++++++++++
+ 2 files changed, 310 insertions(+)
+ create mode 100644 arch/arm/dts/rk3588-rock-5-itx.dts
+ create mode 100644 configs/rock-5-itx-rk3588_defconfig
 
-diff --git a/arch/arm/dts/rk3588-blade3.dts b/arch/arm/dts/rk3588-blade3.dts
+diff --git a/arch/arm/dts/rk3588-rock-5-itx.dts b/arch/arm/dts/rk3588-rock-5-itx.dts
 new file mode 100644
-index 0000000000..d46226011c
+index 0000000000..faf30c06d9
 --- /dev/null
-+++ b/arch/arm/dts/rk3588-blade3.dts
-@@ -0,0 +1,50 @@
++++ b/arch/arm/dts/rk3588-rock-5-itx.dts
+@@ -0,0 +1,87 @@
 +// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
 +/*
-+ * Copyright (c) 2022 Mixtile Limited
++ * Copyright (c) 2021 Rockchip Electronics Co., Ltd
 + *
 + */
 +
 +/dts-v1/;
-+
 +#include "rk3588.dtsi"
 +#include "rk3588-u-boot.dtsi"
 +#include <dt-bindings/input/input.h>
++#include <dt-bindings/phy/phy-snps-pcie3.h>
 +
 +/ {
-+	model = "Mixtile Blade 3";
-+	compatible = "mixtile,blade3", "rockchip,rk3588";
++	model = "Radxa ROCK 5 ITX";
++	compatible = "radxa,rock-5-itx", "rockchip,rk3588";
 +
-+	vbus5v0_typec1: vbus5v0-typec1 {
++	vcc12v_dcin: vcc12v-dcin {
++		u-boot,dm-pre-reloc;
 +		compatible = "regulator-fixed";
-+		regulator-name = "vbus5v0_typec1";
++		regulator-name = "vcc12v_dcin";
++		regulator-always-on;
++		regulator-boot-on;
++		regulator-min-microvolt = <12000000>;
++		regulator-max-microvolt = <12000000>;
++	};
++
++	vcc5v0_sys: vcc5v0-sys {
++		u-boot,dm-pre-reloc;
++		compatible = "regulator-fixed";
++		regulator-name = "vcc5v0_sys";
++		regulator-always-on;
++		regulator-boot-on;
 +		regulator-min-microvolt = <5000000>;
 +		regulator-max-microvolt = <5000000>;
++		vin-supply = <&vcc12v_dcin>;
 +	};
-+};
 +
-+&i2c1 {
-+	status = "okay";
-+
-+	clock-frequency = <400000>;
-+	i2c-scl-rising-time-ns = <160>;
-+	i2c-scl-falling-time-ns = <30>;
-+
-+	usbc1: fusb302@22 {
-+		compatible = "fcs,fusb302";
-+		reg = <0x22>;
-+		interrupt-parent = <&gpio0>;
-+		interrupts = <RK_PC6 IRQ_TYPE_LEVEL_LOW>;
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&usbc1_int>;
-+		vbus-supply = <&vbus5v0_typec1>;
++	adc-keys {
++		compatible = "adc-keys";
++		io-channels = <&saradc 1>;
++		io-channel-names = "buttons";
++		keyup-threshold-microvolt = <1800000>;
++		u-boot,dm-pre-reloc;
 +		status = "okay";
-+	};
-+};
 +
-+&pinctrl {
-+	usb-typec {
-+		usbc1_int: usbc1-int {
-+			rockchip,pins = <0 RK_PC6 RK_FUNC_GPIO &pcfg_pull_up>;
++		volumeup-key {
++			u-boot,dm-pre-reloc;
++			linux,code = <KEY_VOLUMEUP>;
++			label = "volume up";
++			press-threshold-microvolt = <1750>;
 +		};
 +	};
++
++	vcc3v3_pcie30: vcc3v3-pcie30 {
++		u-boot,dm-pre-reloc;
++		compatible = "regulator-fixed";
++		regulator-name = "vcc3v3_pcie30";
++		regulator-min-microvolt = <3300000>;
++		regulator-max-microvolt = <3300000>;
++		enable-active-high;
++		gpio = <&gpio1 RK_PA4 GPIO_ACTIVE_HIGH>;
++		regulator-boot-on;
++		regulator-always-on;
++		vin-supply = <&vcc5v0_sys>;
++	};
 +};
-diff --git a/configs/blade3_defconfig b/configs/blade3_defconfig
++
++&pcie30phy {
++	u-boot,dm-pre-reloc;
++	rockchip,pcie30-phymode = <PHY_MODE_PCIE_NANBNB>;
++	status = "okay";
++};
++
++&pcie3x2 {
++	u-boot,dm-pre-reloc;
++	reset-gpios = <&gpio4 RK_PB0 GPIO_ACTIVE_HIGH>;
++	vpcie3v3-supply = <&vcc3v3_pcie30>;
++	status = "disabled";
++};
++
++&pcie3x4 {
++	u-boot,dm-pre-reloc;
++	num-lanes = <2>;
++	reset-gpios = <&gpio4 RK_PB6 GPIO_ACTIVE_HIGH>;
++	vpcie3v3-supply = <&vcc3v3_pcie30>;
++	status = "okay";
++};
+diff --git a/configs/rock-5-itx-rk3588_defconfig b/configs/rock-5-itx-rk3588_defconfig
 new file mode 100644
-index 0000000000..092677e7fc
+index 0000000000..de71bdaa4e
 --- /dev/null
-+++ b/configs/blade3_defconfig
-@@ -0,0 +1,225 @@
++++ b/configs/rock-5-itx-rk3588_defconfig
+@@ -0,0 +1,223 @@
 +CONFIG_ARM=y
++CONFIG_ARM_CPU_SUSPEND=y
 +CONFIG_ARCH_ROCKCHIP=y
 +CONFIG_SPL_GPIO_SUPPORT=y
 +CONFIG_SPL_LIBCOMMON_SUPPORT=y
@@ -94,8 +133,9 @@ index 0000000000..092677e7fc
 +CONFIG_SPL_LIBDISK_SUPPORT=y
 +CONFIG_SPL_SPI_FLASH_SUPPORT=y
 +CONFIG_SPL_SPI_SUPPORT=y
-+CONFIG_DEFAULT_DEVICE_TREE="rk3588-blade3"
++CONFIG_DEFAULT_DEVICE_TREE="rk3588-rock-5-itx"
 +CONFIG_DEBUG_UART=y
++CONFIG_AHCI=y
 +CONFIG_FIT=y
 +CONFIG_FIT_IMAGE_POST_PROCESS=y
 +CONFIG_FIT_HW_CRYPTO=y
@@ -104,6 +144,7 @@ index 0000000000..092677e7fc
 +CONFIG_SPL_FIT_HW_CRYPTO=y
 +# CONFIG_SPL_SYS_DCACHE_OFF is not set
 +CONFIG_BOOTDELAY=0
++CONFIG_DISABLE_CONSOLE=y
 +CONFIG_SYS_CONSOLE_INFO_QUIET=y
 +# CONFIG_DISPLAY_CPUINFO is not set
 +CONFIG_ANDROID_BOOTLOADER=y
@@ -137,6 +178,7 @@ index 0000000000..092677e7fc
 +# CONFIG_CMD_LOADS is not set
 +CONFIG_CMD_BOOT_ANDROID=y
 +CONFIG_CMD_MMC=y
++CONFIG_CMD_PCI=y
 +CONFIG_CMD_SF=y
 +CONFIG_CMD_SPI=y
 +CONFIG_CMD_USB=y
@@ -155,7 +197,6 @@ index 0000000000..092677e7fc
 +CONFIG_SPL_DTB_MINIMUM=y
 +CONFIG_OF_LIVE=y
 +CONFIG_OF_SPL_REMOVE_PROPS="clock-names interrupt-parent assigned-clocks assigned-clock-rates assigned-clock-parents"
-+CONFIG_OF_U_BOOT_REMOVE_PROPS="pinctrl-0 pinctrl-names clock-names interrupt-parent assigned-clocks assigned-clock-rates assigned-clock-parents"
 +# CONFIG_NET_TFTP_VARS is not set
 +CONFIG_REGMAP=y
 +CONFIG_SPL_REGMAP=y
@@ -163,6 +204,8 @@ index 0000000000..092677e7fc
 +CONFIG_SPL_SYSCON=y
 +# CONFIG_SARADC_ROCKCHIP is not set
 +CONFIG_SARADC_ROCKCHIP_V2=y
++CONFIG_AHCI_PCI=y
++CONFIG_DWC_AHCI=y
 +CONFIG_CLK=y
 +CONFIG_SPL_CLK=y
 +CONFIG_CLK_SCMI=y
@@ -179,12 +222,12 @@ index 0000000000..092677e7fc
 +CONFIG_ROCKCHIP_GPIO_V2=y
 +CONFIG_SYS_I2C_ROCKCHIP=y
 +CONFIG_DM_KEY=y
-+CONFIG_RK8XX_PWRKEY=y
 +CONFIG_ADC_KEY=y
 +CONFIG_MISC=y
 +CONFIG_SPL_MISC=y
 +CONFIG_MISC_DECOMPRESS=y
 +CONFIG_SPL_MISC_DECOMPRESS=y
++CONFIG_ROCKCHIP_OTP=y
 +CONFIG_ROCKCHIP_HW_DECOMPRESS=y
 +CONFIG_SPL_ROCKCHIP_HW_DECOMPRESS=y
 +CONFIG_SPL_ROCKCHIP_SECURE_OTP=y
@@ -212,40 +255,35 @@ index 0000000000..092677e7fc
 +CONFIG_DM_ETH_PHY=y
 +CONFIG_DWC_ETH_QOS=y
 +CONFIG_GMAC_ROCKCHIP=y
++CONFIG_NVME=y
++CONFIG_PCI=y
++CONFIG_DM_PCI=y
++CONFIG_DM_PCI_COMPAT=y
++CONFIG_PCIE_DW_ROCKCHIP=y
 +CONFIG_PHY_ROCKCHIP_INNO_USB2=y
++CONFIG_PHY_ROCKCHIP_NANENG_COMBOPHY=y
 +CONFIG_PHY_ROCKCHIP_SAMSUNG_HDPTX=y
-+CONFIG_PHY_ROCKCHIP_USBDP=y
++CONFIG_PHY_ROCKCHIP_SNPS_PCIE3=y
 +CONFIG_PINCTRL=y
 +CONFIG_SPL_PINCTRL=y
-+CONFIG_DM_FUEL_GAUGE=y
-+CONFIG_POWER_FG_CW201X=y
 +CONFIG_DM_PMIC=y
 +CONFIG_PMIC_SPI_RK8XX=y
-+CONFIG_DM_POWER_DELIVERY=y
-+CONFIG_TYPEC_TCPM=y
-+CONFIG_TYPEC_TCPCI=y
-+CONFIG_TYPEC_HUSB311=y
-+CONFIG_TYPEC_FUSB302=y
 +CONFIG_REGULATOR_PWM=y
 +CONFIG_DM_REGULATOR_FIXED=y
 +CONFIG_DM_REGULATOR_GPIO=y
 +CONFIG_REGULATOR_RK860X=y
 +CONFIG_REGULATOR_RK806=y
-+CONFIG_CHARGER_BQ25700=y
-+CONFIG_CHARGER_BQ25890=y
-+CONFIG_DM_CHARGE_DISPLAY=y
-+CONFIG_CHARGE_ANIMATION=y
 +CONFIG_PWM_ROCKCHIP=y
 +CONFIG_RAM=y
 +CONFIG_SPL_RAM=y
 +CONFIG_TPL_RAM=y
-+CONFIG_DM_RAMDISK=y
-+CONFIG_RAMDISK_RO=y
 +CONFIG_ROCKCHIP_SDRAM_COMMON=y
 +CONFIG_ROCKCHIP_TPL_INIT_DRAM_TYPE=0
 +CONFIG_DM_RESET=y
 +CONFIG_SPL_DM_RESET=y
 +CONFIG_SPL_RESET_ROCKCHIP=y
++CONFIG_SCSI=y
++CONFIG_DM_SCSI=y
 +CONFIG_BAUDRATE=1500000
 +CONFIG_DEBUG_UART_BASE=0xFEB50000
 +CONFIG_DEBUG_UART_CLOCK=24000000
@@ -256,6 +294,7 @@ index 0000000000..092677e7fc
 +CONFIG_USB=y
 +CONFIG_USB_XHCI_HCD=y
 +CONFIG_USB_XHCI_DWC3=y
++CONFIG_USB_XHCI_PCI=y
 +CONFIG_USB_EHCI_HCD=y
 +CONFIG_USB_EHCI_GENERIC=y
 +CONFIG_USB_OHCI_HCD=y
@@ -272,12 +311,9 @@ index 0000000000..092677e7fc
 +CONFIG_DM_VIDEO=y
 +CONFIG_DISPLAY=y
 +CONFIG_DRM_ROCKCHIP=y
-+CONFIG_DRM_ROCKCHIP_DW_HDMI_QP=y
 +CONFIG_DRM_ROCKCHIP_DW_MIPI_DSI2=y
 +CONFIG_DRM_ROCKCHIP_ANALOGIX_DP=y
-+CONFIG_DRM_ROCKCHIP_DW_DP=y
 +CONFIG_DRM_ROCKCHIP_SAMSUNG_MIPI_DCPHY=y
-+CONFIG_PHY_ROCKCHIP_SAMSUNG_HDPTX_HDMI=y
 +CONFIG_USE_TINY_PRINTF=y
 +CONFIG_LIB_RAND=y
 +CONFIG_SPL_TINY_MEMSET=y

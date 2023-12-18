@@ -76,6 +76,12 @@ elif [[ "${BOARD}" == rock-5a ]]; then
 elif [[ "${BOARD}" == rock-5b ]]; then
     DEVICE_TREE=rk3588-rock-5b.dtb
     OVERLAY_PREFIX=rk3588
+elif [[ "${BOARD}" == rock-5-itx ]]; then
+    DEVICE_TREE=rk3588-rock-5-itx.dtb
+    OVERLAY_PREFIX=rk3588
+elif [[ "${BOARD}" == radxa-nx5-io ]]; then
+    DEVICE_TREE=rk3588s-radxa-nx5-io.dtb
+    OVERLAY_PREFIX=rk3588
 elif [[ "${BOARD}" == radxa-cm5-io ]]; then
     DEVICE_TREE=rk3588s-radxa-cm5-io.dtb
     OVERLAY_PREFIX=rk3588
@@ -97,6 +103,9 @@ elif [[ "${BOARD}" == mixtile-blade3 ]]; then
     if [[ "${MAINLINE}" == "Y" ]]; then
         DEVICE_TREE=rk3588-mixtile-blade3.dtb
     fi
+elif [[ "${BOARD}" == mixtile-core3588e ]]; then
+    DEVICE_TREE=rk3588-mixtile-core3588e.dtb
+    OVERLAY_PREFIX=rk3588
 elif [[ "${BOARD}" == indiedroid-nova ]]; then
     DEVICE_TREE=rk3588s-9tripod-linux.dtb
     OVERLAY_PREFIX=rk3588
@@ -108,7 +117,7 @@ elif [[ "${BOARD}" == lubancat-4 ]]; then
     OVERLAY_PREFIX=rk3588
 elif [[ "${BOARD}" == roc-rk3588s-pc ]]; then
     DEVICE_TREE=rk3588s-roc-rk3588s-pc-v12.dtb
-    OVERLAY_PREFIX=
+    OVERLAY_PREFIX=rk3588
 fi
 
 KVER=""
@@ -226,10 +235,10 @@ load ${devtype} ${devnum}:${distro_bootpart} ${fdt_addr_r} /dtbs/rockchip/${fdtf
 fdt addr ${fdt_addr_r} && fdt resize 0x10000
 
 for overlay_file in ${overlays}; do
-    for i in "${overlay_prefix}-${overlay_file}.dtbo ${overlay_prefix}-${overlay_file} ${overlay_file}.dtbo ${overlay_file}"; do
-        if test -e ${devtype} ${devnum}:${distro_bootpart} /dtbs/rockchip/overlay/${i}; then
-            if load ${devtype} ${devnum}:${distro_bootpart} ${fdtoverlay_addr_r} /dtbs/rockchip/overlay/${i}; then
-                echo "Applying device tree overlay: /dtbs/rockchip/overlay/${i}"
+    for file in "${overlay_prefix}-${overlay_file}.dtbo ${overlay_prefix}-${overlay_file} ${overlay_file}.dtbo ${overlay_file}"; do
+        if test -e ${devtype} ${devnum}:${distro_bootpart} /dtbs/rockchip/overlay/${file}; then
+            if load ${devtype} ${devnum}:${distro_bootpart} ${fdtoverlay_addr_r} /dtbs/rockchip/overlay/${file}; then
+                echo "Applying device tree overlay: /dtbs/rockchip/overlay/${file}"
                 fdt apply ${fdtoverlay_addr_r} || setenv overlay_error "true"
             fi
         fi
