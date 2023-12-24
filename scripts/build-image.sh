@@ -249,7 +249,7 @@ mkimage -A arm64 -O linux -T script -C none -n "Boot Script" -d ${mount_point}/s
 
 # Uboot env
 cat > ${mount_point}/system-boot/ubuntuEnv.txt << EOF
-bootargs=root=UUID=${root_uuid} rootfstype=ext4 rootwait rw console=ttyS2,1500000 console=tty1 cgroup_enable=cpuset cgroup_memory=1 cgroup_enable=memory swapaccount=1 systemd.unified_cgroup_hierarchy=0 ${bootargs}
+bootargs=root=UUID=${root_uuid} rootfstype=ext4 rootwait rw console=ttyS2,115200 console=tty1 cgroup_enable=cpuset cgroup_memory=1 cgroup_enable=memory swapaccount=1 systemd.unified_cgroup_hierarchy=0 ${bootargs}
 fdtfile=${DEVICE_TREE}
 overlay_prefix=${OVERLAY_PREFIX}
 overlays=
@@ -258,9 +258,9 @@ EOF
 # Turing RK1 uses UART9 by default
 if [[ "${MAINLINE}" == "Y" ]]; then
     sed -i 's/swapaccount=1/irqchip.gicv3_pseudo_nmi=0/g' ${mount_point}/system-boot/ubuntuEnv.txt
-    [ "${BOARD}" == turing-rk1 ] && sed -i 's/console=ttyS2,1500000/console=ttyS0,115200/g' ${mount_point}/system-boot/ubuntuEnv.txt
+    [ "${BOARD}" == turing-rk1 ] && sed -i 's/console=ttyS2,115200/console=ttyS0,115200/g' ${mount_point}/system-boot/ubuntuEnv.txt
 else
-    [ "${BOARD}" == turing-rk1 ] && sed -i 's/console=ttyS2,1500000/console=ttyS9,115200 console=ttyS2,1500000/g' ${mount_point}/system-boot/ubuntuEnv.txt
+    [ "${BOARD}" == turing-rk1 ] && sed -i 's/console=ttyS2,115200/console=ttyS9,115200 console=ttyS2,115200/g' ${mount_point}/system-boot/ubuntuEnv.txt
 fi
 
 # Copy the device trees, kernel, and initrd to the boot partition
