@@ -1,4 +1,4 @@
-GIT=https://github.com/radxa/u-boot.git
-COMMIT=ddc91cd08c10f625f7a7c93033042aa4071c78a8
+GIT=https://github.com/SandroDickens/u-boot-3588.git
+COMMIT=0d4952f97ad6982b120ffb39ef2c62833c7bc336
 BRANCH=next-dev
 VERSION=2017.09+20230711.gitddc91cd0
