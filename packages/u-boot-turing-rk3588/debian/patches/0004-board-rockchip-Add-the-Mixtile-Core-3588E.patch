@@ -34,7 +34,7 @@ index 0000000000..e0e974a89f
 +	model = "Mixtile Core 3588E";
 +
 +	chosen {
-+		stdout-path = "serial2:1500000n8";
++		stdout-path = "serial2:115200n8";
 +	};
 +
 +	aliases {
@@ -780,7 +780,7 @@ index 0000000000..609578ee93
 +CONFIG_SPL_RAM=y
 +CONFIG_SCSI=y
 +CONFIG_DM_SCSI=y
-+CONFIG_BAUDRATE=1500000
++CONFIG_BAUDRATE=115200
 +CONFIG_DEBUG_UART_SHIFT=2
 +CONFIG_SYS_NS16550_MEM32=y
 +CONFIG_ROCKCHIP_SFC=y
